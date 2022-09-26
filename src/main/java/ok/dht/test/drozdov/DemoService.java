@@ -55,7 +55,7 @@ public class DemoService implements Service {
         return httpConfig;
     }
 
-    @ServiceFactory(stage = 0, week = 1)
+    @ServiceFactory(stage = 0, week = 0)
     public static class Factory implements ServiceFactory.Factory {
 
         @Override
