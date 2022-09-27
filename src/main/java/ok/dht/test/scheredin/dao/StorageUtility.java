@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Iterator;
 
-public class StorageUtility {
+public final class StorageUtility {
     private static final long VERSION = 0;
     private static final int INDEX_HEADER_SIZE = Long.BYTES * 3;
     private static final int INDEX_RECORD_SIZE = Long.BYTES;
@@ -22,7 +22,7 @@ public class StorageUtility {
     private static final String FILE_EXT_TMP = ".tmp";
     private static final String COMPACTED_FILE = FILE_NAME + "_compacted_" + FILE_EXT;
 
-    private StorageUtils() {
+    private StorageUtility() {
     }
 
     public static long getSize(Entry<MemorySegment> entry) {
