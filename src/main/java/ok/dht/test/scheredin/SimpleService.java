@@ -10,12 +10,12 @@ import ok.dht.test.scheredin.dao.Entry;
 import ok.dht.test.scheredin.dao.MemorySegmentDao;
 import one.nio.http.HttpServer;
 import one.nio.http.HttpSession;
-import one.nio.http.Request;
-import one.nio.http.Response;
+import one.nio.http.HttpServerConfig;
 import one.nio.http.Path;
 import one.nio.http.Param;
+import one.nio.http.Request;
+import one.nio.http.Response;
 import one.nio.http.RequestMethod;
-import one.nio.http.HttpServerConfig;
 import one.nio.server.AcceptorConfig;
 
 import javax.annotation.Nonnull;
@@ -61,59 +61,38 @@ public class SimpleService implements Service {
     @RequestMethod(Request.METHOD_GET)
     public Response handleGet(@Param(value = "id", required = true) String id) {
         if (id == null || id.isBlank()) {
-            return new Response(
-                    Response.BAD_REQUEST,
-                    Response.EMPTY
-            );
+            return new Response(Response.BAD_REQUEST, Response.EMPTY);
         }
         MemorySegment key = MemorySegment.ofArray(id.getBytes(StandardCharsets.UTF_8));
         Entry<MemorySegment> result = dao.get(key);
         if (result == null || result.isTombstone()) {
-            return new Response(
-                    Response.NOT_FOUND,
-                    Response.EMPTY
-            );
+            return new Response(Response.NOT_FOUND, Response.EMPTY);
         }
-        return new Response(
-                Response.OK,
-                result.value().toByteArray()
-        );
+        return new Response(Response.OK, result.value().toByteArray());
     }
 
     @Path("/v0/entity")
     @RequestMethod(Request.METHOD_PUT)
     public Response handlePut(@Param(value = "id", required = true) String id, Request request) {
         if (id == null || id.isBlank()) {
-            return new Response(
-                    Response.BAD_REQUEST,
-                    Response.EMPTY
-            );
+            return new Response(Response.BAD_REQUEST, Response.EMPTY);
         }
         MemorySegment key = MemorySegment.ofArray(id.getBytes(StandardCharsets.UTF_8));
         MemorySegment value = MemorySegment.ofArray(request.getBody());
         dao.upsert(new BaseEntry<>(key, value));
-        return new Response(
-                Response.CREATED,
-                Response.EMPTY
-        );
+        return new Response(Response.CREATED, Response.EMPTY);
     }
 
     @Path("/v0/entity")
     @RequestMethod(Request.METHOD_DELETE)
     public Response handleDelete(@Param(value = "id", required = true) String id) {
         if (id == null || id.isBlank()) {
-            return new Response(
-                    Response.BAD_REQUEST,
-                    Response.EMPTY
-            );
+            return new Response(Response.BAD_REQUEST, Response.EMPTY);
         }
 
         MemorySegment key = MemorySegment.ofArray(id.getBytes(StandardCharsets.UTF_8));
         dao.upsert(new BaseEntry<>(key, null));
-        return new Response(
-                Response.ACCEPTED,
-                Response.EMPTY
-        );
+        return new Response(Response.ACCEPTED, Response.EMPTY);
     }
 
     //<editor-fold desc="Utils">

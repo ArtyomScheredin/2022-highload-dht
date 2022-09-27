@@ -4,7 +4,6 @@ import ok.dht.ServiceConfig;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -23,20 +22,14 @@ public final class Main {
         // Only main method
     }
 
-    public static void main(String[] args) throws IOException, ExecutionException, InterruptedException, TimeoutException {
-        Path serverPath;
-        try {
-            serverPath = Files.createTempDirectory("server");
-        } catch (IOException e) {
-            return;
-        }
+    public static void main(String[] args) throws IOException, ExecutionException,
+            InterruptedException, TimeoutException {
         ServiceConfig cfg = new ServiceConfig(
                 PORT,
                 URL,
                 Collections.singletonList(URL),
-                serverPath
+                Files.createTempDirectory("server")
         );
         new SimpleService(cfg).start().get(1, TimeUnit.SECONDS);
-        System.out.println("Socket is ready: " + URL);
     }
 }
