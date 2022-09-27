@@ -8,21 +8,20 @@ import ok.dht.test.scheredin.dao.BaseEntry;
 import ok.dht.test.scheredin.dao.Config;
 import ok.dht.test.scheredin.dao.Entry;
 import ok.dht.test.scheredin.dao.MemorySegmentDao;
-import one.nio.http.*;
-import one.nio.os.Mem;
+import one.nio.http.HttpServer;
+import one.nio.http.HttpSession;
+import one.nio.http.Request;
+import one.nio.http.Response;
+import one.nio.http.Path;
+import one.nio.http.Param;
+import one.nio.http.RequestMethod;
+import one.nio.http.HttpServerConfig;
 import one.nio.server.AcceptorConfig;
-import one.nio.util.Utf8;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public class SimpleService implements Service {
 
@@ -80,7 +79,6 @@ public class SimpleService implements Service {
                 result.value().toByteArray()
         );
     }
-
 
     @Path("/v0/entity")
     @RequestMethod(Request.METHOD_PUT)
