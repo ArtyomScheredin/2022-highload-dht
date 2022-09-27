@@ -15,9 +15,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import static ok.dht.test.scheredin.dao.StorageUtils.finishCompact;
-import static ok.dht.test.scheredin.dao.StorageUtils.mapForRead;
-import static ok.dht.test.scheredin.dao.StorageUtils.saveToMemory;
+import static ok.dht.test.scheredin.dao.StorageUtility.finishCompact;
+import static ok.dht.test.scheredin.dao.StorageUtility.mapForRead;
+import static ok.dht.test.scheredin.dao.StorageUtility.saveToMemory;
 
 class Storage implements Closeable {
 
