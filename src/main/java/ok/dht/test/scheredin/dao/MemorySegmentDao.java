@@ -234,4 +234,5 @@ public class MemorySegmentDao implements Dao<MemorySegment, Entry<MemorySegment>
             return;
         }
         Storage.save(config, localState.storage, localState.memory.values());
+    }
 }
