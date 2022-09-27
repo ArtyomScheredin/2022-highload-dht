@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
@@ -20,13 +21,13 @@ public final class DemoServer {
     }
 
     public static void main(String[] args) throws Exception {
-        int port = 19234;
+        int port = 19235;
         String url = "http://localhost:" + port;
         ServiceConfig cfg = new ServiceConfig(
                 port,
                 url,
                 Collections.singletonList(url),
-                Files.createTempDirectory("server")
+                Path.of("/var/folders/zr/llh3lt015pg38ggz_tk96gqh0000gq/T/server7080579832102129790")
         );
         new DemoService(cfg).start().get(1, TimeUnit.SECONDS);
         System.out.println("Socket is ready: " + url);

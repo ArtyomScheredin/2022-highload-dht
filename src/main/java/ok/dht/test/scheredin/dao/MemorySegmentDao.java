@@ -4,9 +4,7 @@ import jdk.incubator.foreign.MemorySegment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -195,7 +193,6 @@ public class MemorySegmentDao implements Dao<MemorySegment, Entry<MemorySegment>
         awaitAndUnwrap(future);
     }
 
-
     private void awaitAndUnwrap(Future<?> future) throws IOException {
         try {
             future.get();
@@ -223,7 +220,7 @@ public class MemorySegmentDao implements Dao<MemorySegment, Entry<MemorySegment>
         try {
             //noinspection StatementWithEmptyBody
             while (!executor.awaitTermination(10, TimeUnit.DAYS)) {
-                //do
+                // empty!
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

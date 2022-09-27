@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ThreadFactory;
 
 import static ok.dht.test.scheredin.dao.StorageUtils.finishCompact;
 import static ok.dht.test.scheredin.dao.StorageUtils.mapForRead;
@@ -90,7 +89,7 @@ class Storage implements Closeable {
     }
 
     // file structure:
-// (fileVersion)(entryCount)((entryPosition)...)|((keySize/key/valueSize/value)...)
+    // (fileVersion)(entryCount)((entryPosition)...)|((keySize/key/valueSize/value)...)
     private long entryIndex(MemorySegment sstable, MemorySegment key) {
         long fileVersion = MemoryAccess.getLongAtOffset(sstable, 0);
         if (fileVersion != 0) {
@@ -176,7 +175,7 @@ class Storage implements Closeable {
     }
 
     // last is newer
-// it is ok to mutate list after
+    // it is ok to mutate list after
     public List<Iterator<Entry<MemorySegment>>> iterate(MemorySegment keyFrom, MemorySegment keyTo) {
         try {
             ArrayList<Iterator<Entry<MemorySegment>>> iterators = new ArrayList<>(sstables.size());
