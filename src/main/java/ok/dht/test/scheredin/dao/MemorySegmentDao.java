@@ -219,7 +219,10 @@ public class MemorySegmentDao implements Dao<MemorySegment, Entry<MemorySegment>
         executor.shutdown();
         try {
             //noinspection StatementWithEmptyBody
-            while (!executor.awaitTermination(10, TimeUnit.DAYS)) ;
+            boolean flag = false;
+            while (!flag) {
+                flag = executor.awaitTermination(10, TimeUnit.DAYS);
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException(e);
@@ -231,5 +234,4 @@ public class MemorySegmentDao implements Dao<MemorySegment, Entry<MemorySegment>
             return;
         }
         Storage.save(config, localState.storage, localState.memory.values());
-    }
 }
