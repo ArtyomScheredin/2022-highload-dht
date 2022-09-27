@@ -2,10 +2,9 @@ package ok.dht.test.scheredin.dao;
 
 import jdk.incubator.foreign.MemorySegment;
 
-
 import java.util.Comparator;
 
-final public class EntryKeyComparator implements Comparator<Entry<MemorySegment>> {
+public final class EntryKeyComparator implements Comparator<Entry<MemorySegment>> {
 
     public static final Comparator<Entry<MemorySegment>> INSTANCE = new EntryKeyComparator();
 
