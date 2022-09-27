@@ -4,7 +4,6 @@ import ok.dht.ServiceConfig;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +31,5 @@ public final class Main {
                 Files.createTempDirectory("server")
         );
         new SimpleService(cfg).start().get(1, TimeUnit.SECONDS);
-        System.out.println("Socket is ready: " + URL);
     }
 }
