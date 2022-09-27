@@ -1,9 +1,5 @@
 package ok.dht.test.scheredin.dao;
 
-import ru.mail.polis.Config;
-import ru.mail.polis.Dao;
-import ru.mail.polis.Entry;
-
 import java.io.IOException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
