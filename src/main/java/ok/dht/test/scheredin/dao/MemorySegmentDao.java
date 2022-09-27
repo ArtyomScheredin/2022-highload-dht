@@ -168,7 +168,7 @@ public class MemorySegmentDao implements Dao<MemorySegment, Entry<MemorySegment>
                 return null;
             }
 
-            StorageUtils.compact(
+            StorageUtility.compact(
                     config,
                     () -> MergeIterator.of(
                             localState.storage.iterate(VERY_FIRST_KEY,

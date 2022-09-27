@@ -36,9 +36,9 @@ public class Memory {
             throw new UnsupportedOperationException("Read-only map");
         }
         Entry<MemorySegment> segmentEntry = delegate.put(key, entry);
-        long sizeDelta = StorageUtils.getSizeOnDisk(entry);
+        long sizeDelta = StorageUtility.getSizeOnDisk(entry);
         if (segmentEntry != null) {
-            sizeDelta -= StorageUtils.getSizeOnDisk(segmentEntry);
+            sizeDelta -= StorageUtility.getSizeOnDisk(segmentEntry);
         }
         long newSize = size.addAndGet(sizeDelta);
         if (newSize > sizeThreshold) {
