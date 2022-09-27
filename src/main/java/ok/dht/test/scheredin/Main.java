@@ -29,7 +29,7 @@ public final class Main {
                 PORT,
                 URL,
                 Collections.singletonList(URL),
-                Path.of("/var/folders/zr/llh3lt015pg38ggz_tk96gqh0000gq/T/server7080579832102129790")
+                Files.createTempDirectory("server")
         );
         new SimpleService(cfg).start().get(1, TimeUnit.SECONDS);
         System.out.println("Socket is ready: " + URL);
