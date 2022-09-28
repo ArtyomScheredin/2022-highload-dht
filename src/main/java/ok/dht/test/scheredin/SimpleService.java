@@ -46,7 +46,6 @@ public class SimpleService implements Service {
         };
         server.start();
         server.addRequestHandlers(this);
-        dao.flush();
         return CompletableFuture.completedFuture(null);
     }
 
