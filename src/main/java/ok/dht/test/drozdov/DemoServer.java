@@ -18,7 +18,7 @@ public final class DemoServer {
     }
 
     public static void main(String[] args) throws Exception {
-        int port = 19235;
+        int port = 19666;
         String url = "http://localhost:" + port;
         ServiceConfig cfg = new ServiceConfig(
                 port,

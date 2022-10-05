@@ -10,8 +10,6 @@ import one.nio.server.SelectorThread;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.NoSuchElementException;
-import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
@@ -19,17 +17,16 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class MultiThreadedServer extends HttpServer {
-    private static final int QUEUE_CAPACITY = 64;
-    private static final int AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
+    private static final int QUEUE_CAPACITY = 256;
+    private static final int EXECUTORS_COUNT = 32;
 
-    private final Queue queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
-    private final Stack stack = new Stack<>(QUEUE_CAPACITY);
+    private final ArrayBlockingQueue queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
     private final ExecutorService executorService = new ThreadPoolExecutor(
-            AVAILABLE_PROCESSORS,
-            AVAILABLE_PROCESSORS,
+            EXECUTORS_COUNT,
+            EXECUTORS_COUNT,
             0L,
             TimeUnit.MILLISECONDS,
-            new ArrayBlockingQueue<>(QUEUE_CAPACITY));
+            queue);
 
     public MultiThreadedServer(HttpServerConfig config, Object... routers) throws IOException {
         super(config, routers);
