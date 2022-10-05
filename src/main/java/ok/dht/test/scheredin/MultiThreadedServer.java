@@ -19,7 +19,7 @@ public class MultiThreadedServer extends HttpServer {
     private static final int QUEUE_CAPACITY = 32;
     private static final int EXECUTORS_COUNT = 8;
 
-    private final StackImpl queue = new StackImpl<>(QUEUE_CAPACITY);
+    private final StackImpl queue = new StackImpl<Runnable>(QUEUE_CAPACITY);
     private final ExecutorService executorService = new ThreadPoolExecutor(
             EXECUTORS_COUNT,
             EXECUTORS_COUNT,

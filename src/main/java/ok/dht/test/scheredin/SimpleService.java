@@ -23,6 +23,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class SimpleService implements Service {
 
+    public static final String PATH_TO_ENTITY = "/v0/entity";
     private final ServiceConfig config;
     private MultiThreadedServer server;
     private MemorySegmentDao dao;
@@ -86,7 +87,7 @@ public class SimpleService implements Service {
         return new Response(Response.ACCEPTED, Response.EMPTY);
     }
 
-    @Path("/v0/entity")
+    @Path(PATH_TO_ENTITY)
     @RequestMethod(Request.METHOD_POST)
     public Response handlePost(@Param(value = "id") String id) {
         return new Response(Response.METHOD_NOT_ALLOWED, Response.EMPTY);
