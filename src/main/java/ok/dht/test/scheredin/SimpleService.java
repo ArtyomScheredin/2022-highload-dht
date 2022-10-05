@@ -26,7 +26,7 @@ import java.util.concurrent.CompletableFuture;
 public class SimpleService implements Service {
 
     private final ServiceConfig config;
-    private HttpServer server;
+    private MultiThreadedServer server;
     private MemorySegmentDao dao;
     private static final int FLUSH_THRESHOLD_BYTES = 1 << 20; //1 MB
 
@@ -37,28 +37,22 @@ public class SimpleService implements Service {
     @Override
     public CompletableFuture<?> start() throws IOException {
         dao = new MemorySegmentDao(new Config(config.workingDir(), FLUSH_THRESHOLD_BYTES));
-        server = new HttpServer(createConfigFromPort(config.selfPort())) {
-            @Override
-            public void handleDefault(Request request, HttpSession session) throws IOException {
-                Response response = new Response(Response.BAD_REQUEST, Response.EMPTY);
-                session.sendResponse(response);
-            }
-        };
-        server.start();
+        server = new MultiThreadedServer(createConfigFromPort(config.selfPort()));
         server.addRequestHandlers(this);
+        server.start();
         return CompletableFuture.completedFuture(null);
     }
 
     @Override
     public CompletableFuture<?> stop() throws IOException {
-        dao.close();
         server.stop();
+        dao.close();
         return CompletableFuture.completedFuture(null);
     }
 
     @Path("/v0/entity")
     @RequestMethod(Request.METHOD_GET)
-    public Response handleGet(@Param(value = "id", required = true) String id) {
+    public Response handleGet(@Param(value = "id") String id) {
         if (id == null || id.isBlank()) {
             return new Response(Response.BAD_REQUEST, Response.EMPTY);
         }
@@ -72,7 +66,7 @@ public class SimpleService implements Service {
 
     @Path("/v0/entity")
     @RequestMethod(Request.METHOD_PUT)
-    public Response handlePut(@Param(value = "id", required = true) String id, Request request) {
+    public Response handlePut(@Param(value = "id") String id, Request request) {
         if (id == null || id.isBlank()) {
             return new Response(Response.BAD_REQUEST, Response.EMPTY);
         }
@@ -84,7 +78,7 @@ public class SimpleService implements Service {
 
     @Path("/v0/entity")
     @RequestMethod(Request.METHOD_DELETE)
-    public Response handleDelete(@Param(value = "id", required = true) String id) {
+    public Response handleDelete(@Param(value = "id") String id) {
         if (id == null || id.isBlank()) {
             return new Response(Response.BAD_REQUEST, Response.EMPTY);
         }
@@ -103,9 +97,10 @@ public class SimpleService implements Service {
         httpConfig.acceptors = new AcceptorConfig[]{acceptor};
         return httpConfig;
     }
+
     //</editor-fold>
 
-    @ServiceFactory(stage = 1, week = 1)
+    @ServiceFactory(stage = 2, week = 1, bonuses = "SingleNodeTest#respectFileFolder")
     public static class Factory implements ServiceFactory.Factory {
 
         @Override
