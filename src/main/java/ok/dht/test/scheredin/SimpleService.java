@@ -86,6 +86,12 @@ public class SimpleService implements Service {
         return new Response(Response.ACCEPTED, Response.EMPTY);
     }
 
+    @Path("/v0/entity")
+    @RequestMethod(Request.METHOD_POST)
+    public Response handlePost(@Param(value = "id") String id) {
+        return new Response(Response.METHOD_NOT_ALLOWED, Response.EMPTY);
+    }
+
     //<editor-fold desc="Utils">
     private static HttpServerConfig createConfigFromPort(@Nonnull int port) {
         HttpServerConfig httpConfig = new HttpServerConfig();
