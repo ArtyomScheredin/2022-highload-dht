@@ -49,7 +49,7 @@ public class SimpleService implements Service {
         return CompletableFuture.completedFuture(null);
     }
 
-    @Path("/v0/entity")
+    @Path(PATH_TO_ENTITY)
     @RequestMethod(Request.METHOD_GET)
     public Response handleGet(@Param(value = "id") String id) {
         if (id == null || id.isBlank()) {
@@ -63,7 +63,7 @@ public class SimpleService implements Service {
         return new Response(Response.OK, result.value().toByteArray());
     }
 
-    @Path("/v0/entity")
+    @Path(PATH_TO_ENTITY)
     @RequestMethod(Request.METHOD_PUT)
     public Response handlePut(@Param(value = "id") String id, Request request) {
         if (id == null || id.isBlank()) {
@@ -75,7 +75,7 @@ public class SimpleService implements Service {
         return new Response(Response.CREATED, Response.EMPTY);
     }
 
-    @Path("/v0/entity")
+    @Path(PATH_TO_ENTITY)
     @RequestMethod(Request.METHOD_DELETE)
     public Response handleDelete(@Param(value = "id") String id) {
         if (id == null || id.isBlank()) {
