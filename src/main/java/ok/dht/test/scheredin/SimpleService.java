@@ -34,7 +34,7 @@ public class SimpleService implements Service {
 
     @Override
     public CompletableFuture<?> start() throws IOException {
-        dao = new MemorySegmentDao(new Config(config.workingDir(), FLUSH_THRESHOLD_BYTES));
+        dao = new MemorySegmentDao(new Config(java.nio.file.Path.of("/Users/artem.scheredin/projects/technop/server"), FLUSH_THRESHOLD_BYTES));
         server = new MultiThreadedServer(createConfigFromPort(config.selfPort()));
         server.addRequestHandlers(this);
         server.start();
@@ -57,7 +57,7 @@ public class SimpleService implements Service {
         MemorySegment key = MemorySegment.ofArray(id.getBytes(StandardCharsets.UTF_8));
         Entry<MemorySegment> result = dao.get(key);
         if (result == null || result.isTombstone()) {
-            return new Response(Response.NOT_FOUND, Response.EMPTY);
+            return new Response(Response.OK, Response.EMPTY);
         }
         return new Response(Response.OK, result.value().toByteArray());
     }

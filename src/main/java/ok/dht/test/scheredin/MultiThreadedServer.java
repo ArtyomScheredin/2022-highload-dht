@@ -10,23 +10,23 @@ import one.nio.server.SelectorThread;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class MultiThreadedServer extends HttpServer {
-    private static final int QUEUE_CAPACITY = 256;
-    private static final int EXECUTORS_COUNT = 32;
+    private static final int QUEUE_CAPACITY = 32;
+    private static final int EXECUTORS_COUNT = 8;
 
-    private final ArrayBlockingQueue queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
+    private final StackImpl queue = new StackImpl<>(QUEUE_CAPACITY);
     private final ExecutorService executorService = new ThreadPoolExecutor(
             EXECUTORS_COUNT,
             EXECUTORS_COUNT,
             0L,
             TimeUnit.MILLISECONDS,
-            queue);
+            queue,
+            new ThreadPoolExecutor.AbortPolicy());
 
     public MultiThreadedServer(HttpServerConfig config, Object... routers) throws IOException {
         super(config, routers);
@@ -53,20 +53,22 @@ public class MultiThreadedServer extends HttpServer {
 
     @Override
     public void handleRequest(Request request, HttpSession session) throws IOException {
-        executorService.execute(() -> {
-            try {
-                super.handleRequest(request, session);
-            } catch (IOException e) {
-                sendError(session, Response.BAD_REQUEST, e.getMessage());
-            } catch (RejectedExecutionException e) {
-                sendError(session, Response.SERVICE_UNAVAILABLE, e.getMessage());
-            }
-        });
+       try {
+            executorService.execute(() -> {
+                try {
+                    super.handleRequest(request, session);
+                } catch (IOException e) {
+                    sendError(session, Response.BAD_REQUEST, e.getMessage());
+                }
+            });
+        } catch (RejectedExecutionException e) {
+            sendError(session, Response.BAD_REQUEST, e.getMessage());
+}
     }
 
-    private static void sendError(HttpSession session, String serviceUnavailable, String message) {
+    private static void sendError(HttpSession session, String code, String message) {
         try {
-            session.sendError(serviceUnavailable, message);
+            session.sendError(code, message);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
