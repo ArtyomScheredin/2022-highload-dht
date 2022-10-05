@@ -55,15 +55,19 @@ public class MultiThreadedServer extends HttpServer {
     public void handleRequest(Request request, HttpSession session) throws IOException {
        try {
             executorService.execute(() -> {
-                try {
-                    super.handleRequest(request, session);
-                } catch (IOException e) {
-                    sendError(session, Response.BAD_REQUEST, e.getMessage());
-                }
+                handleRequestAndCatchExceptions(request, session);
             });
         } catch (RejectedExecutionException e) {
             sendError(session, Response.BAD_REQUEST, e.getMessage());
 }
+    }
+
+    private void handleRequestAndCatchExceptions(Request request, HttpSession session) {
+        try {
+            super.handleRequest(request, session);
+        } catch (IOException e) {
+            sendError(session, Response.BAD_REQUEST, e.getMessage());
+        }
     }
 
     private static void sendError(HttpSession session, String code, String message) {
