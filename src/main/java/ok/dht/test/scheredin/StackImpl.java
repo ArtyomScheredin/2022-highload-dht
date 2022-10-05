@@ -1,7 +1,6 @@
 package ok.dht.test.scheredin;
 
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class StackImpl<T> extends LinkedBlockingDeque<T> {
     private final LinkedBlockingDeque<T> queue;
