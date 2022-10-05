@@ -266,16 +266,16 @@ Transfer/sec:    269.44KB
 
 ### Нормальная нагрузка
 
-![image](./histograms/get_3500R_hitsogram.png)
-![image](./histograms/get_3500R_heatmap.png)
-[Хитмап](./htmls/get_3500R.html)
+![image](histograms/get_3500R_hitsogram.png)
+![image](histograms/get_3500R_heatmap.png)
+[Хитмап](htmls/get_3500R.html)
 
 
 ### Повышенная
 
-![image](./histograms/get_4000R_histogram.png)
-![image](./histograms/get_4000R_heatmap.png)
-[Хитмап](./htmls/get_4000R.html)
+![image](histograms/get_4000R_histogram.png)
+![image](histograms/get_4000R_heatmap.png)
+[Хитмап](htmls/get_4000R.html)
 
 ---
 
@@ -549,16 +549,16 @@ Transfer/sec:      1.36MB
 
 ### Нормальная нагрузка
 
-![image](./histograms/put_15000R_histogram.png)
-![image](./histograms/put_15000R_heatmap.png)
-[Хитмап](./htmls/put_15000R.html)
+![image](histograms/put_15000R_histogram.png)
+![image](histograms/put_15000R_heatmap.png)
+[Хитмап](htmls/put_15000R.html)
 
 
 ### Повышенная
 
-![image](./histograms/put_21000R_histogram.png)
-![image](./histograms/put_21000R_heatmap.png)
-[Хитмап](./htmls/put_21000R.html)
+![image](histograms/put_21000R_histogram.png)
+![image](histograms/put_21000R_heatmap.png)
+[Хитмап](htmls/put_21000R.html)
 
 ---
 
