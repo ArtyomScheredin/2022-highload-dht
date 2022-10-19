@@ -4,6 +4,7 @@ import ok.dht.ServiceConfig;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -16,7 +17,7 @@ import java.util.concurrent.TimeoutException;
  */
 public final class Main {
     private static final String BASE_URL = "http://localhost:";
-    private static List<String> urls;
+    private static List<String> urls = new ArrayList<>();
 
     private Main() {
         // Only main method
@@ -36,6 +37,8 @@ public final class Main {
                 urls,
                 Files.createTempDirectory("server")
         );
-        new SimpleService(cfg).start().get(1, TimeUnit.SECONDS);
+        SimpleService simpleService = new SimpleService(cfg);
+        simpleService.start().get(1, TimeUnit.SECONDS);
+        simpleService.stop();
     }
 }

@@ -14,6 +14,7 @@ import one.nio.http.Response;
 import one.nio.net.Session;
 import one.nio.server.AcceptorConfig;
 import one.nio.server.SelectorThread;
+import one.nio.util.Hash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,34 +26,48 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static java.time.temporal.ChronoUnit.SECONDS;
+
 public class MultiThreadedServer extends HttpServer {
     private static final Logger logger = LoggerFactory.getLogger(MultiThreadedServer.class);
     private static final int QUEUE_CAPACITY = 32;
-    private static final int EXECUTORS_COUNT = Runtime.getRuntime().availableProcessors() << 1;
-    public static final String PATH = "/v0/entity";
-    private MemorySegmentDao dao;
-    private final ServiceConfig config;
+    private static final int EXECUTORS_COUNT = 3;
     private static final int FLUSH_THRESHOLD_BYTES = 1 << 20; //1 MB
 
+    private MemorySegmentDao dao;
+    private final ServiceConfig config;
+    private final Map<String, CircuitBreaker> circuitBreakersMap;
+
+
     private final StackImpl queue = new StackImpl<Runnable>(QUEUE_CAPACITY);
-    private ExecutorService executorService = new ThreadPoolExecutor(
-            EXECUTORS_COUNT,
-            EXECUTORS_COUNT,
-            0L,
-            TimeUnit.MILLISECONDS,
-            queue,
-            new ThreadPoolExecutor.AbortPolicy());
-    private final HttpClient client = HttpClient.newHttpClient();
+    private List<ExecutorService> executorServices;
+    private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.of(10, SECONDS)).build();
 
     public MultiThreadedServer(ServiceConfig config, Object... routers) throws IOException {
         super(createConfigFromPort(config.selfPort()), routers);
         this.config = config;
+        circuitBreakersMap = new HashMap<>();
+        executorServices = new ArrayList<>();
+        for (int i = 0; i < config.clusterUrls().size(); i++) {
+            executorServices.add(new ThreadPoolExecutor(
+                    EXECUTORS_COUNT,
+                    EXECUTORS_COUNT,
+                    0L,
+                    TimeUnit.MILLISECONDS,
+                    queue,
+                    new ThreadPoolExecutor.AbortPolicy()));
+        }
+        config.clusterUrls().forEach((e) -> circuitBreakersMap.put(e, new CircuitBreaker(20, 1000)));
     }
 
     @Override
@@ -81,21 +96,24 @@ public class MultiThreadedServer extends HttpServer {
             logger.warn("Failed to shutdown dao");
             throw new RuntimeException(e);
         }
-        executorService.shutdown();
-        try {
-            if (!executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS)) {
-                throw new RuntimeException("Failed to shutdown executor service");
+        executorServices.forEach(service -> {
+            service.shutdown();
+            try {
+                if (!service.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS)) {
+                    throw new RuntimeException("Failed to shutdown executor service");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
             }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
-        }
+        });
+
 
     }
 
     @Override
     public void handleRequest(Request request, HttpSession session) throws IOException {
-        if (!request.getPath().equals(PATH)) {
+        if (!request.getPath().equals("/v0/entity")) {
             session.sendResponse(new Response(Response.BAD_REQUEST, Response.EMPTY));
             return;
         }
@@ -105,19 +123,29 @@ public class MultiThreadedServer extends HttpServer {
             session.sendResponse(new Response(Response.BAD_REQUEST, Response.EMPTY));
             return;
         }
+        Integer nodeIndex = getNodeIndex(id);
+        executorServices.get(nodeIndex).execute(() -> {
+            CircuitBreaker circuitBreaker = circuitBreakersMap.get(config.clusterUrls().get(getNodeIndex(id)));
+            CircuitBreaker.State state = circuitBreaker.getState();
 
-        executorService.execute(() -> {
-            Integer nodeIndex = getNodeIndex(id);
-            if (nodeIndex == null) {
+            if (state.equals(CircuitBreaker.State.CLOSED)) {
                 sendError(session, Response.SERVICE_UNAVAILABLE, null);
             }
+
             String url = config.clusterUrls().get(nodeIndex);
-            boolean isSelfNode = url.equals(config.selfUrl());
             try {
-                session.sendResponse(isSelfNode ? handleRequest(request, id) : proxyRequest(request, url));
+                if (url.equals(config.selfUrl())) {
+                    session.sendResponse(handleRequest(request, id));
+                } else {
+                    session.sendResponse(proxyRequest(request, url));
+                    if (state.equals(CircuitBreaker.State.HALF_OPEN)) {
+                        circuitBreaker.recordSuccess();
+                    }
+                }
             } catch (IOException | InterruptedException e) {
-                logger.warn("Failed to send response");
-                sendError(session, Response.INTERNAL_ERROR, e.getMessage());
+                logger.warn("Failed to establish connection");
+                sendError(session, Response.BAD_GATEWAY, e.getMessage());
+                circuitBreaker.recordFail();
             }
         });
     }
@@ -127,7 +155,7 @@ public class MultiThreadedServer extends HttpServer {
         Integer index = null;
         List<String> nodes = config.clusterUrls();
         for (int i = 0; i < nodes.size(); i++) {
-            int cur = id.hashCode() * nodes.get(i).hashCode();
+            int cur = Hash.murmur3(id) * Hash.murmur3(nodes.get(i));
             max = Math.max(cur, max);
             index = i;
         }
@@ -136,14 +164,15 @@ public class MultiThreadedServer extends HttpServer {
 
     private Response proxyRequest(Request request, String url) throws IOException, InterruptedException {
         URI uriFromRequest = URI.create(request.getURI());
-        byte[] body = request.getBody() == null ? new byte[]{} : request.getBody();
+        byte[] body = (request.getBody() == null) ? new byte[]{} : request.getBody();
         HttpRequest proxyRequest =
                 HttpRequest.newBuilder(URI.create(url + uriFromRequest.getPath() + '?' + uriFromRequest.getQuery()))
-                .method(
-                        request.getMethodName(),
-                        HttpRequest.BodyPublishers.ofByteArray(body)
-                ).build();
-        HttpResponse<byte[]> response = client.send(proxyRequest, HttpResponse.BodyHandlers.ofByteArray());
+                        .method(
+                                request.getMethodName(),
+                                HttpRequest.BodyPublishers.ofByteArray(body)
+                        ).build();
+        HttpResponse<byte[]> response;
+        response = client.send(proxyRequest, HttpResponse.BodyHandlers.ofByteArray());
         String status = switch (response.statusCode()) {
             case HttpURLConnection.HTTP_OK -> Response.OK;
             case HttpURLConnection.HTTP_CREATED -> Response.CREATED;
