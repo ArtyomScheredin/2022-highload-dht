@@ -4,11 +4,7 @@ import ok.dht.ServiceConfig;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -29,14 +25,11 @@ public final class Main {
     public static void main(String[] args) throws IOException, ExecutionException,
             InterruptedException, TimeoutException {
         int port;
-        try {
-            port = Integer.parseInt(args[0]);
-        } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-            System.err.println("Incorrect program arguments, required: port");
-            throw e;
-        }
+        port = Integer.parseInt(args[0]);
         String url = BASE_URL + port;
-        urls.add(url);
+        urls.add("http://localhost:19301");
+        urls.add("http://localhost:19302");
+        urls.add("http://localhost:19303");
         ServiceConfig cfg = new ServiceConfig(
                 port,
                 url,
@@ -44,6 +37,5 @@ public final class Main {
                 Files.createTempDirectory("server")
         );
         new SimpleService(cfg).start().get(1, TimeUnit.SECONDS);
-        System.out.println("Socket is ready: " + url);
     }
 }

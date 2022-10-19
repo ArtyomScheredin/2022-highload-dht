@@ -31,8 +31,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static java.lang.Math.abs;
-
 public class MultiThreadedServer extends HttpServer {
     private static final Logger logger = LoggerFactory.getLogger(MultiThreadedServer.class);
     private static final int QUEUE_CAPACITY = 32;
@@ -50,7 +48,6 @@ public class MultiThreadedServer extends HttpServer {
             TimeUnit.MILLISECONDS,
             queue,
             new ThreadPoolExecutor.AbortPolicy());
-    ;
     private final HttpClient client = HttpClient.newHttpClient();
 
     public MultiThreadedServer(ServiceConfig config, Object... routers) throws IOException {
@@ -109,7 +106,6 @@ public class MultiThreadedServer extends HttpServer {
             return;
         }
 
-
         executorService.execute(() -> {
             Integer nodeIndex = getNodeIndex(id);
             if (nodeIndex == null) {
@@ -141,7 +137,8 @@ public class MultiThreadedServer extends HttpServer {
     private Response proxyRequest(Request request, String url) throws IOException, InterruptedException {
         URI uriFromRequest = URI.create(request.getURI());
         byte[] body = request.getBody() == null ? new byte[]{} : request.getBody();
-        HttpRequest proxyRequest = HttpRequest.newBuilder(URI.create(url + uriFromRequest.getPath() + '?' + uriFromRequest.getQuery()))
+        HttpRequest proxyRequest =
+                HttpRequest.newBuilder(URI.create(url + uriFromRequest.getPath() + '?' + uriFromRequest.getQuery()))
                 .method(
                         request.getMethodName(),
                         HttpRequest.BodyPublishers.ofByteArray(body)

@@ -12,7 +12,6 @@ public class SimpleService implements Service {
     private final ServiceConfig config;
     private MultiThreadedServer server;
 
-
     public SimpleService(ServiceConfig config) {
         this.config = config;
     }
