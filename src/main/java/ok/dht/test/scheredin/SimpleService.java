@@ -25,6 +25,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class SimpleService implements Service {
 
+    public static final String PATH = "/v0/entity";
     private final ServiceConfig config;
     private HttpServer server;
     private MemorySegmentDao dao;
@@ -40,7 +41,13 @@ public class SimpleService implements Service {
         server = new HttpServer(createConfigFromPort(config.selfPort())) {
             @Override
             public void handleDefault(Request request, HttpSession session) throws IOException {
-                Response response = new Response(Response.BAD_REQUEST, Response.EMPTY);
+                String statusCode;
+                if (request.getPath().equals(PATH)) {
+                    statusCode = Response.METHOD_NOT_ALLOWED;
+                } else {
+                    statusCode = Response.BAD_REQUEST;
+                }
+                Response response = new Response(statusCode, Response.EMPTY);
                 session.sendResponse(response);
             }
         };
@@ -56,7 +63,7 @@ public class SimpleService implements Service {
         return CompletableFuture.completedFuture(null);
     }
 
-    @Path("/v0/entity")
+    @Path(PATH)
     @RequestMethod(Request.METHOD_GET)
     public Response handleGet(@Param(value = "id", required = true) String id) {
         if (id == null || id.isBlank()) {
@@ -70,7 +77,7 @@ public class SimpleService implements Service {
         return new Response(Response.OK, result.value().toByteArray());
     }
 
-    @Path("/v0/entity")
+    @Path(PATH)
     @RequestMethod(Request.METHOD_PUT)
     public Response handlePut(@Param(value = "id", required = true) String id, Request request) {
         if (id == null || id.isBlank()) {
@@ -82,7 +89,7 @@ public class SimpleService implements Service {
         return new Response(Response.CREATED, Response.EMPTY);
     }
 
-    @Path("/v0/entity")
+    @Path(PATH)
     @RequestMethod(Request.METHOD_DELETE)
     public Response handleDelete(@Param(value = "id", required = true) String id) {
         if (id == null || id.isBlank()) {
